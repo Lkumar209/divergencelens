@@ -42,6 +42,11 @@ env/
 Thumbs.db
 
 # Outputs (generated, not committed)
-results/
 data/
 experiments/
+
+# Keep benchmark results committed
+!results/
+!results/*.md
+!results/*.json
+!results/*.png
