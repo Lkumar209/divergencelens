@@ -28,7 +28,9 @@ serve:
 
 reproduce:
 	@echo "Regenerating DivergenceBench and computing all metrics..."
-	uv run python -m bench.metrics.compute
+	PYTHONPATH=. uv run python -m bench.metrics.compute
+	PYTHONPATH=. uv run python -c "from bench.baselines.runner import run_all_baselines; run_all_baselines()"
+	PYTHONPATH=. uv run python -c "from bench.ablations.ablations import run_ablations; run_ablations()"
 	@echo "Done. See results/RESULTS.md"
 
 clean:
