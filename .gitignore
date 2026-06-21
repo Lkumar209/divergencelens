@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[oc]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Environments
+.venv/
+venv/
+env/
+
+# Secrets / credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Model caches / large data
+.cache/
+*.pt
+*.bin
+*.gguf
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Outputs (generated, not committed)
+results/
+data/
+experiments/
