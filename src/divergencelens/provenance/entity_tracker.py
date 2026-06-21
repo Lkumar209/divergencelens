@@ -65,35 +65,44 @@ class EntityTracker:
 
     def is_read_ever_used(self, read_event: FileRead, graph: "ProvenanceGraph") -> bool:
         """
-        Check if a FileRead's content is reachable by any later Claim or ToolCall.
+        Check if a FileRead is consumed by a later claim, tool call, or write.
 
-        'Used' means there exists a path in the provenance graph from this
-        FileRead node to a Claim node or another ToolCall node at a later step.
+        'Used' means there is a DATA_DEPENDENCY or CONSUMES edge from this node
+        to a downstream node — NOT merely a temporal successor. Pure temporal
+        ordering does not constitute usage.
         """
-        from divergencelens.provenance.graph_builder import NodeKind
+        from divergencelens.provenance.graph_builder import EdgeKind, NodeKind
 
         nid = read_event.event_id
         if nid not in graph.graph:
             return False
 
+        # Walk only data-dependency / consumes edges (not temporal)
+        visited: set[str] = set()
+        queue = [nid]
+        while queue:
+            cur = queue.pop()
+            if cur in visited:
+                continue
+            visited.add(cur)
+            for _, nbr, edata in graph.graph.out_edges(cur, data=True):
+                edge_kind = edata.get("kind", "")
+                if edge_kind in (EdgeKind.DATA_DEPENDENCY.value, EdgeKind.CONSUMES.value, EdgeKind.PRODUCES.value):
+                    node_data = graph.graph.nodes.get(nbr, {})
+                    kind = node_data.get("kind", "")
+                    if kind in (NodeKind.CLAIM.value, NodeKind.TOOL_CALL.value, NodeKind.FILE_WRITE.value):
+                        return True
+                    queue.append(nbr)
+
+        # Fallback: check if the read's path is referenced in any later assistant claim text
+        read_path = read_event.path
         read_step = read_event.step_index
+        for ev in self.run.events:
+            from divergencelens.core.events import AssistantMessage
+            if isinstance(ev, AssistantMessage) and ev.step_index > read_step:
+                if read_path in ev.content:
+                    return True
 
-        # Walk all successors in the graph
-        try:
-            descendants = set(_bfs_successors(graph.graph, nid))
-        except Exception:
-            return False
-
-        for desc_nid in descendants:
-            data = graph.graph.nodes.get(desc_nid, {})
-            desc_step = data.get("step_index", -1)
-            kind = data.get("kind", "")
-            if desc_step > read_step and kind in (
-                NodeKind.CLAIM.value,
-                NodeKind.TOOL_CALL.value,
-                NodeKind.FILE_WRITE.value,
-            ):
-                return True
         return False
 
     def get_all_dangling_reads(self, graph: "ProvenanceGraph") -> list[FileRead]:
