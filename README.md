@@ -107,13 +107,23 @@ DivergenceLens is validated on **DivergenceBench** — a labeled dataset built v
 make reproduce   # regenerates DivergenceBench and RESULTS.md from scratch
 ```
 
-See [results/RESULTS.md](results/RESULTS.md) for the full comparison table after running.
+### Results (DivergenceBench, test split, 3 seeds, no LLM judge)
 
-**Baselines:**
-1. Final-answer-only correctness
-2. Generic LLM-judge trajectory eval (no consistency matrix, no provenance)
-3. Deterministic-only DivergenceLens
-4. Graph-only DivergenceLens
+| Method | F1 | Precision | Recall | FP Rate |
+|--------|----|-----------|--------|---------|
+| Final-answer baseline | 0.00 | — | — | 0.00 |
+| Generic LLM-judge baseline | — | — | — | — |
+| Deterministic-only | **1.00** | 1.00 | 1.00 | 0.00 |
+| Graph-only | 0.00 | 0.00 | 0.00 | 0.00 |
+| **DivergenceLens (full)** | **1.00** | **1.00** | **1.00** | **0.00** |
+
+Mean localization accuracy (within ±2 steps of gold): **0.848**
+
+Per-category F1: all 5 injected categories score **1.00**.
+
+> Note: F1=1.0 on a synthetic corpus reflects rule-matched injections, not real-world generalization. See [LIMITATIONS.md](LIMITATIONS.md) and [results/RESULTS.md](results/RESULTS.md) for honest discussion.
+
+See [results/RESULTS.md](results/RESULTS.md) for full per-seed breakdowns, ablation table, and figures.
 
 ---
 
